@@ -26,6 +26,8 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
     private BufferedImage image;
 
+    private Snake snake;
+
 
 
     public Game() {
@@ -36,6 +38,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
         requestFocus();
 
         frame = new JFrame();
+        snake = new Snake();
 
         addKeyListener(this);
     }
@@ -106,11 +109,13 @@ public class Game extends Canvas implements Runnable, KeyListener {
         graphics.setColor(Color.BLACK);
         graphics.fillRect(0, 0, WIDTH, HEIGHT);
 
+        snake.render(graphics);
+
         graphics.drawImage(image, 0, 0, WIDTH, HEIGHT, null);
 
         graphics.dispose();
         bufferStrategy.show();
-        
+
     }
 
     @Override
