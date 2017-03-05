@@ -20,6 +20,8 @@ public class Snake {
     private final int STARTX = 250;
     private final int STARTY = 250;
 
+    private int score;
+
 
     public Snake() {
         snakeDots = new ArrayList<>();
@@ -27,6 +29,7 @@ public class Snake {
         this.yDir = 0;
         this.isMoving = false;
         this.increment = false;
+        this.score = 0;
         this.snakeDots.add(new Dot(STARTX, STARTY));
         for(int i = 1; i < STARTSIZE; i++) {
             /* Adding all dots (parts) of the snake */
@@ -69,6 +72,10 @@ public class Snake {
     public int getX() { return this.snakeDots.get(0).getX(); }
     public int getY() { return this.snakeDots.get(0).getY(); }
 
+    public int getScore() {return score;}
+    public void setScore(int score) {this.score = score;}
+
+    public int getSize() { return this.snakeDots.size(); }
 
     public void render(Graphics graphics) {
 
@@ -94,6 +101,7 @@ public class Snake {
             }
         }
     }
+
 
     public boolean hasCollided() {
 

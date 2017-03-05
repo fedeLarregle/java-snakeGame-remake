@@ -27,6 +27,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
     private BufferedImage image;
 
     private Snake snake;
+    private Food food;
 
 
 
@@ -39,6 +40,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
         frame = new JFrame();
         snake = new Snake();
+        food = new Food(snake);
 
         addKeyListener(this);
     }
@@ -95,8 +97,10 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
     public void update() {
 
-        if(gameOver) { this.stop(); }
+        if(gameOver) { this.stop(); System.out.println("GAME OVER"); }
         snake.update();
+        food.hasCollidedWithSnake();
+
     }
 
     public void render() {
@@ -113,6 +117,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
         graphics.fillRect(0, 0, WIDTH, HEIGHT);
 
         snake.render(graphics);
+        food.render(graphics);
 
         graphics.drawImage(image, 0, 0, WIDTH, HEIGHT, null);
 
@@ -125,8 +130,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
         if(snake.getX() < 0 || snake.getX() > WIDTH - 4) { gameOver = true; }
         if(snake.getY() < 0 || snake.getY() > HEIGHT - 4) { gameOver = true; }
-        if(snake.hasCollided()) { gameOver = true;
-            System.out.println("GAME OVER");}
+        if(snake.hasCollided()) { gameOver = true; }
 
     }
 
