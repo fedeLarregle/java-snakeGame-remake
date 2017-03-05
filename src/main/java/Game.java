@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 
 /**
@@ -94,6 +95,22 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
     public void render() {
 
+        BufferStrategy bufferStrategy = getBufferStrategy();
+
+        if(bufferStrategy == null) {
+            createBufferStrategy(3);
+            return;
+        }
+
+        Graphics graphics = bufferStrategy.getDrawGraphics();
+        graphics.setColor(Color.BLACK);
+        graphics.fillRect(0, 0, WIDTH, HEIGHT);
+
+        graphics.drawImage(image, 0, 0, WIDTH, HEIGHT, null);
+
+        graphics.dispose();
+        bufferStrategy.show();
+        
     }
 
     @Override
