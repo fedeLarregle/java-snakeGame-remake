@@ -66,6 +66,9 @@ public class Snake {
         this.increment = increment;
     }
 
+    public int getX() { return this.snakeDots.get(0).getX(); }
+    public int getY() { return this.snakeDots.get(0).getY(); }
+
 
     public void render(Graphics graphics) {
 
@@ -77,5 +80,31 @@ public class Snake {
 
     public void update() {
 
+        if(isMoving) {
+            Dot temp = snakeDots.get(0);
+            Dot last = snakeDots.get(snakeDots.size() - 1);
+            Dot newStart = new Dot(temp.getX() + xDir * 4, temp.getY() + yDir * 4);
+            for (int i = snakeDots.size() - 1; i >= 1; i--) {
+                snakeDots.set(i, snakeDots.get(i - 1));
+            }
+            snakeDots.set(0, newStart);
+            if(isIncrement()) {
+                snakeDots.add(last);
+                setIncrement(false);
+            }
+        }
+    }
+
+    public boolean hasCollided() {
+
+        int x = this.getX();
+        int y = this.getY();
+
+        for(int i = 1; i < snakeDots.size(); i++) {
+            if(snakeDots.get(i).getX() == x && snakeDots.get(i).getY() == y) {
+                return true;
+            }
+        }
+        return false;
     }
 }

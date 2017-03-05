@@ -75,6 +75,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
             startTime = System.nanoTime();
             update();
+            this.checkGameOver();
             render();
             URTimeMillis = (System.nanoTime() - startTime) / 1_000_000;
 
@@ -94,6 +95,8 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
     public void update() {
 
+        if(gameOver) { this.stop(); }
+        snake.update();
     }
 
     public void render() {
@@ -118,6 +121,15 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
     }
 
+    public void checkGameOver() {
+
+        if(snake.getX() < 0 || snake.getX() > WIDTH - 4) { gameOver = true; }
+        if(snake.getY() < 0 || snake.getY() > HEIGHT - 4) { gameOver = true; }
+        if(snake.hasCollided()) { gameOver = true;
+            System.out.println("GAME OVER");}
+
+    }
+
     @Override
     public void keyTyped(KeyEvent e) {
 
@@ -126,6 +138,40 @@ public class Game extends Canvas implements Runnable, KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
 
+        if(!snake.isMoving()) {
+            if(e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_DOWN
+                    || e.getKeyCode() == KeyEvent.VK_RIGHT) {
+                snake.setMoving(true);
+            }
+        }
+
+        if(e.getKeyCode() == KeyEvent.VK_UP) {
+            if(snake.getyDir() != 1) {
+                snake.setyDir(-1);
+                snake.setxDir(0);
+            }
+        }
+
+        if(e.getKeyCode() == KeyEvent.VK_DOWN) {
+            if(snake.getyDir() != -1) {
+                snake.setyDir(1);
+                snake.setxDir(0);
+            }
+        }
+
+        if(e.getKeyCode() == KeyEvent.VK_LEFT) {
+            if(snake.getxDir() != 1) {
+                snake.setxDir(-1);
+                snake.setyDir(0);
+            }
+        }
+
+        if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
+            if(snake.getxDir() != -1) {
+                snake.setxDir(1);
+                snake.setyDir(0);
+            }
+        }
     }
 
     @Override
