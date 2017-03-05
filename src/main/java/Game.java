@@ -119,6 +119,10 @@ public class Game extends Canvas implements Runnable, KeyListener {
         snake.render(graphics);
         food.render(graphics);
 
+        graphics.setColor(Color.WHITE);
+        graphics.drawString("Player Score: " + String.valueOf(snake.getScore()),
+                WIDTH - (WIDTH >>> 2), (HEIGHT >>> 4));
+
         graphics.drawImage(image, 0, 0, WIDTH, HEIGHT, null);
 
         graphics.dispose();

@@ -40,6 +40,7 @@ public class Food {
             if(snakeY >= this.y && snakeY <= (this.y + height)) {
                 setNewPosition();
                 snake.setIncrement(true);
+                snake.setScore(100);
                 return true;
             }
         }

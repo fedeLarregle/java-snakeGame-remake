@@ -72,8 +72,8 @@ public class Snake {
     public int getX() { return this.snakeDots.get(0).getX(); }
     public int getY() { return this.snakeDots.get(0).getY(); }
 
-    public int getScore() {return score;}
-    public void setScore(int score) {this.score = score;}
+    public int getScore() {return this.score;}
+    public void setScore(int score) {this.score += score;}
 
     public int getSize() { return this.snakeDots.size(); }
 
