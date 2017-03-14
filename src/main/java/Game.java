@@ -4,8 +4,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 
 /**
  * Created by federico on 04/03/17.
@@ -17,17 +19,20 @@ public class Game extends Canvas implements Runnable, KeyListener {
     public static int HEIGHT = 500;
 
     private boolean isRunning = false;
-    private boolean gameOver = false;
 
     private Thread thread;
     private JFrame frame;
 
     private int FPS = 30;
 
+    private Menu menu;
+    private GameState gameState;
+
     private BufferedImage image;
 
     private Snake snake;
     private Food food;
+
 
 
 
@@ -41,6 +46,9 @@ public class Game extends Canvas implements Runnable, KeyListener {
         frame = new JFrame();
         snake = new Snake();
         food = new Food(snake);
+
+        menu = new Menu(Arrays.asList("Game ON", "QUIT"));
+        gameState = GameState.SELECCION;
 
         addKeyListener(this);
     }
@@ -61,6 +69,14 @@ public class Game extends Canvas implements Runnable, KeyListener {
         }
     }
 
+    public enum GameState {
+        PAUSED,
+        SELECCION,
+        KEYWORDS,
+        GAME_STATE,
+        GAME_OVER
+    }
+
 
     @Override
     public void run() {
@@ -77,7 +93,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
             startTime = System.nanoTime();
             update();
-            this.checkGameOver();
+            if(getGameState().equals(GameState.GAME_STATE)) { this.checkGameOver(); }
             render();
             URTimeMillis = (System.nanoTime() - startTime) / 1_000_000;
 
@@ -97,46 +113,72 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
     public void update() {
 
-        if(gameOver) { this.stop(); System.out.println("GAME OVER"); }
-        snake.update();
-        food.hasCollidedWithSnake();
+        if(getGameState().equals(GameState.GAME_STATE)) {
+            snake.update();
+            food.hasCollidedWithSnake();
+        }
 
     }
 
     public void render() {
 
-        BufferStrategy bufferStrategy = getBufferStrategy();
+        BufferStrategy bs = getBufferStrategy();
 
-        if(bufferStrategy == null) {
+        if (bs == null) {
             createBufferStrategy(3);
             return;
         }
 
-        Graphics graphics = bufferStrategy.getDrawGraphics();
+        Graphics graphics = bs.getDrawGraphics();
+
+        // Painting the background with BLACK color
         graphics.setColor(Color.BLACK);
         graphics.fillRect(0, 0, WIDTH, HEIGHT);
 
-        snake.render(graphics);
-        food.render(graphics);
+        // If we are in the SELECCION mode we render the default menu
+        if (getGameState().equals(GameState.SELECCION)) {
+            menu.render(graphics);
+        } else if (getGameState().equals(GameState.GAME_STATE)) {
 
-        graphics.setColor(Color.WHITE);
-        graphics.drawString("Player Score: " + String.valueOf(snake.getScore()),
-                WIDTH - (WIDTH >>> 2), (HEIGHT >>> 4));
+            // If we are in the GAME STATE we are going to render the snake, score and food
+            snake.render(graphics);
+            food.render(graphics);
+
+            graphics.setColor(Color.WHITE);
+            graphics.drawString("Player Score: " + String.valueOf(snake.getScore()),
+                    WIDTH - (WIDTH >>> 2), (HEIGHT >>> 4));
+
+        } else if (getGameState().equals(GameState.PAUSED)) {
+            // If we are in the PAUSED state we are going to render the paused state
+            menu.setOptions(Arrays.asList("RESUME"));
+            menu.render(graphics);
+        } else if (getGameState().equals(GameState.GAME_OVER)) {
+            // If we are in the GAME OVER state we are going to render the GAME OVER state with the Final Score
+            menu.setOptions(Arrays.asList("GAME OVER (PRESS SCAPE)",
+                    "Final Score: " + String.valueOf(snake.getScore())));
+            menu.render(graphics, Color.RED);
+        }
 
         graphics.drawImage(image, 0, 0, WIDTH, HEIGHT, null);
 
         graphics.dispose();
-        bufferStrategy.show();
+        bs.show();
 
     }
 
     public void checkGameOver() {
 
-        if(snake.getX() < 0 || snake.getX() > WIDTH - 4) { gameOver = true; }
-        if(snake.getY() < 0 || snake.getY() > HEIGHT - 4) { gameOver = true; }
-        if(snake.hasCollided()) { gameOver = true; }
+        /*
+        * Checking for collision with the borders of the window and with the snake it self
+        */
+        if(snake.getX() < 0 || snake.getX() > WIDTH - 4) { setGameState(GameState.GAME_OVER); }
+        if(snake.getY() < 0 || snake.getY() > HEIGHT - 4) { setGameState(GameState.GAME_OVER); }
+        if(snake.hasCollided()) { setGameState(GameState.GAME_OVER); }
 
     }
+
+    public void setGameState(Game.GameState gameState) { this.gameState = gameState; }
+    public GameState getGameState() { return this.gameState; }
 
     @Override
     public void keyTyped(KeyEvent e) {
@@ -146,38 +188,83 @@ public class Game extends Canvas implements Runnable, KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
 
-        if(!snake.isMoving()) {
-            if(e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_DOWN
-                    || e.getKeyCode() == KeyEvent.VK_RIGHT) {
-                snake.setMoving(true);
-            }
-        }
+        /*
+        * Setting the listeners for the Key events of DOWN and UP if we are in the SELECCION MENU
+        */
+        if(getGameState().equals(GameState.SELECCION)){
 
-        if(e.getKeyCode() == KeyEvent.VK_UP) {
-            if(snake.getyDir() != 1) {
-                snake.setyDir(-1);
-                snake.setxDir(0);
-            }
-        }
+            if (menu.getCurrentOption().equals(menu.getOptions().get(0))) {
 
-        if(e.getKeyCode() == KeyEvent.VK_DOWN) {
-            if(snake.getyDir() != -1) {
-                snake.setyDir(1);
-                snake.setxDir(0);
-            }
-        }
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    setGameState(GameState.GAME_STATE);
+                }
 
-        if(e.getKeyCode() == KeyEvent.VK_LEFT) {
-            if(snake.getxDir() != 1) {
-                snake.setxDir(-1);
-                snake.setyDir(0);
-            }
-        }
+                if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+                    menu.setCurrentOption("QUIT");
+                } else if (e.getKeyCode() == KeyEvent.VK_UP) {
+                    menu.setCurrentOption("QUIT");
+                }
+            } else if (menu.getCurrentOption().equals(menu.getOptions().get(1))) {
+                if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    this.frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+                }
 
-        if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
-            if(snake.getxDir() != -1) {
-                snake.setxDir(1);
-                snake.setyDir(0);
+                if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+                    menu.setCurrentOption("Game ON");
+                } else if (e.getKeyCode() == KeyEvent.VK_UP) {
+                    menu.setCurrentOption("Game ON");
+                }
+            }
+        } else if (getGameState().equals(GameState.GAME_STATE)) {
+
+            // Checking if the player PAUSED the game (with P key)
+            if(e.getKeyCode() == KeyEvent.VK_P) {
+                setGameState(GameState.PAUSED);
+            }
+
+            // We are going to setMoving for the first time only if the player moves to UP, DOWN or RIGHT
+            if (!snake.isMoving()) {
+                if (e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_DOWN
+                        || e.getKeyCode() == KeyEvent.VK_RIGHT) {
+                    snake.setMoving(true);
+                }
+            }
+
+            if (e.getKeyCode() == KeyEvent.VK_UP) {
+                if (snake.getyDir() != 1) {
+                    snake.setyDir(-1);
+                    snake.setxDir(0);
+                }
+            }
+
+            if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+                if (snake.getyDir() != -1) {
+                    snake.setyDir(1);
+                    snake.setxDir(0);
+                }
+            }
+
+            if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+                if (snake.getxDir() != 1) {
+                    snake.setxDir(-1);
+                    snake.setyDir(0);
+                }
+            }
+
+            if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+                if (snake.getxDir() != -1) {
+                    snake.setxDir(1);
+                    snake.setyDir(0);
+                }
+            }
+        } else if (getGameState().equals(GameState.PAUSED)) {
+            if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+                setGameState(GameState.GAME_STATE);
+            }
+
+        } else if (getGameState().equals(GameState.GAME_OVER)) {
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                this.frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
             }
         }
     }
