@@ -72,7 +72,6 @@ public class Game extends Canvas implements Runnable, KeyListener {
     public enum GameState {
         PAUSED,
         SELECCION,
-        KEYWORDS,
         GAME_STATE,
         GAME_OVER
     }
